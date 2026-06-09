@@ -16,8 +16,8 @@ COPY --chown=app:app requirements.txt /app/
 RUN python -m pip install --upgrade pip setuptools wheel && \
 		pip install --no-cache-dir -r /app/requirements.txt
 
-# Install gosu for privilege drop and copy app code
-RUN apt-get update && apt-get install -y --no-install-recommends gosu && rm -rf /var/lib/apt/lists/*
+# Install gosu and curl for healthcheck, then copy app code
+RUN apt-get update && apt-get install -y --no-install-recommends gosu curl && rm -rf /var/lib/apt/lists/*
 COPY --chown=app:app . /app/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
