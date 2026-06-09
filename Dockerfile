@@ -16,18 +16,17 @@ COPY --chown=app:app requirements.txt /app/
 RUN python -m pip install --upgrade pip setuptools wheel && \
 		pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy application code
+# Install gosu for privilege drop and copy app code
+RUN apt-get update && apt-get install -y --no-install-recommends gosu && rm -rf /var/lib/apt/lists/*
 COPY --chown=app:app . /app/
-
-# Run as non-root user
-USER app
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
 
 # Basic healthcheck for container orchestrators
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-	CMD curl -f http://127.0.0.1:8000/health || exit 1
+  CMD curl -f http://127.0.0.1:8000/health || exit 1
 
-# Start WSGI server
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["gunicorn", "-b", "0.0.0.0:8000", "app.main:app"]
-
